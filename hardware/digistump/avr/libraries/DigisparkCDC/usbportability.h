@@ -5,7 +5,6 @@
  * Tabsize: 4
  * Copyright: (c) 2008 by OBJECTIVE DEVELOPMENT Software GmbH
  * License: GNU GPL v2 (see License.txt), GNU GPL v3 or proprietary (CommercialLicense.txt)
- * This Revision: $Id: usbportability.h 785 2010-05-30 17:57:07Z cs $
  */
 
 /*
@@ -47,9 +46,9 @@ Thanks to Oleg Semyonov for his help with the IAR tools port!
 #endif
 
 #ifdef __HAS_ELPM__
-#   define const PROGMEM __farflash
+#   define PROGMEM __farflash
 #else
-#   define const PROGMEM __flash
+#   define PROGMEM __flash
 #endif
 
 #define USB_READ_FLASH(addr)    (*(const PROGMEM char *)(addr))
@@ -93,7 +92,7 @@ Thanks to Oleg Semyonov for his help with the IAR tools port!
 
 #define __attribute__(arg)  /* not supported on IAR */
 
-#define const PROGMEM                 __flash
+#define PROGMEM                 __flash
 #define USB_READ_FLASH(addr)    (*(const PROGMEM char *)(addr))
 
 #ifndef __ASSEMBLER__

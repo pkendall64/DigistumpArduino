@@ -5,7 +5,6 @@
  * Tabsize: 4
  * Copyright: (c) 2005 by OBJECTIVE DEVELOPMENT Software GmbH
  * License: GNU GPL v2 (see License.txt), GNU GPL v3 or proprietary (CommercialLicense.txt)
- * This Revision: $Id: usbconfig-prototype.h 767 2009-08-22 11:39:22Z cs $
  */
 
 #ifndef __usbconfig_h_included__
@@ -26,15 +25,15 @@ section at the end of this file).
 
 /* ---------------------------- Hardware Config ---------------------------- */
 
-#define USB_CFG_IOPORTNAME      D
+/* #define USB_CFG_IOPORTNAME      D	*/
 /* This is the port where the USB bus is connected. When you configure it to
  * "B", the registers PORTB, PINB and DDRB will be used.
  */
-#define USB_CFG_DMINUS_BIT      4
+/* #define USB_CFG_DMINUS_BIT      4	*/
 /* This is the bit number in USB_CFG_IOPORT where the USB D- line is connected.
  * This may be any bit in the port.
  */
-#define USB_CFG_DPLUS_BIT       2
+/* #define USB_CFG_DPLUS_BIT       2	*/
 /* This is the bit number in USB_CFG_IOPORT where the USB D+ line is connected.
  * This may be any bit in the port. Please note that D+ must also be connected
  * to interrupt pin INT0! [You can also use other interrupts, see section
@@ -43,14 +42,47 @@ section at the end of this file).
  * interrupt, the USB interrupt will also be triggered at Start-Of-Frame
  * markers every millisecond.]
  */
+#if defined (__AVR_ATtiny44__) || defined (__AVR_ATtiny84__)
+#define USB_CFG_IOPORTNAME      B
+#define USB_CFG_DMINUS_BIT      1
+#define USB_CFG_DPLUS_BIT       2
+
+#elif defined (__AVR_ATtiny45__) || defined (__AVR_ATtiny85__)
+#define USB_CFG_IOPORTNAME      B
+#define USB_CFG_DMINUS_BIT      3
+#define USB_CFG_DPLUS_BIT       4
+
+#elif defined (__AVR_ATtiny87__) || defined (__AVR_ATtiny167__)
+#define USB_CFG_IOPORTNAME      B
+#define USB_CFG_DMINUS_BIT      3
+#define USB_CFG_DPLUS_BIT       6
+
+#elif defined (__AVR_ATtiny461__) || defined (__AVR_ATtiny861__)
+#define USB_CFG_IOPORTNAME      B
+#define USB_CFG_DMINUS_BIT      5
+#define USB_CFG_DPLUS_BIT       6
+#else
+/*	ATtiny2313, ATmega8/48/88/168	*/
+#define USB_CFG_IOPORTNAME      D
+#define USB_CFG_DMINUS_BIT      3
+#define USB_CFG_DPLUS_BIT       2
+#endif
+
 #define USB_CFG_CLOCK_KHZ       (F_CPU/1000)
 /* Clock rate of the AVR in kHz. Legal values are 12000, 12800, 15000, 16000,
- * 16500 and 20000. The 12.8 MHz and 16.5 MHz versions of the code require no
- * crystal, they tolerate +/- 1% deviation from the nominal frequency. All
- * other rates require a precision of 2000 ppm and thus a crystal!
- * Default if not specified: 12 MHz
+ * 16500, 18000 and 20000. The 12.8 MHz and 16.5 MHz versions of the code
+ * require no crystal, they tolerate +/- 1% deviation from the nominal
+ * frequency. All other rates require a precision of 2000 ppm and thus a
+ * crystal!
+ * Since F_CPU should be defined to your actual clock rate anyway, you should
+ * not need to modify this setting.
  */
+#if USB_CFG_CLOCK_KHZ==18000
+#define USB_CFG_CHECK_CRC       1
+#else
 #define USB_CFG_CHECK_CRC       0
+#endif
+
 /* Define this to 1 if you want that the driver checks integrity of incoming
  * data packets (CRC checks). CRC checks cost quite a bit of code size and are
  * currently only available for 18 MHz crystal clock. You must choose
@@ -144,6 +176,11 @@ section at the end of this file).
  * of the macros usbDisableAllRequests() and usbEnableAllRequests() in
  * usbdrv.h.
  */
+#define USB_CFG_DRIVER_FLASH_PAGE       0
+/* If the device has more than 64 kBytes of flash, define this to the 64 k page
+ * where the driver's constants (descriptors) are located. Or in other words:
+ * Define this to 1 for boot loaders on the ATMega128.
+ */
 #define USB_CFG_LONG_TRANSFERS          0
 /* Define this to 1 if you want to send/receive blocks of more than 254 bytes
  * in a single control-in or control-out transfer. Note that the capability
@@ -197,7 +234,8 @@ section at the end of this file).
  * usbFunctionWrite(). Use the global usbCurrentDataToken and a static variable
  * for each control- and out-endpoint to check for duplicate packets.
  */
-#define USB_CFG_HAVE_MEASURE_FRAME_LENGTH   0
+#define USB_CFG_HAVE_MEASURE_FRAME_LENGTH   1
+#include "osccal.h"
 /* define this macro to 1 if you want the function usbMeasureFrameLength()
  * compiled in. This function can be used to calibrate the AVR's RC oscillator.
  */
@@ -276,7 +314,7 @@ section at the end of this file).
 /* #define USB_CFG_HID_REPORT_DESCRIPTOR_LENGTH    42 */
 /* Define this to the length of the HID report descriptor, if you implement
  * an HID device. Otherwise don't define it or define it to 0.
- * If you use this define, you must add a PROGMEM character array named
+ * If you use this define, you must add a const PROGMEM character array named
  * "usbHidReportDescriptor" to your code which contains the report descriptor.
  * Don't forget to keep the array and this define in sync!
  */
@@ -304,7 +342,7 @@ section at the end of this file).
  *   + USB_PROP_LENGTH(len): If the data is in static memory (RAM or flash),
  *     the driver must know the descriptor's length. The descriptor itself is
  *     found at the address of a well known identifier (see below).
- * List of static descriptor names (must be declared PROGMEM if in flash):
+ * List of static descriptor names (must be declared const PROGMEM if in flash):
  *   char usbDescriptorDevice[];
  *   char usbDescriptorConfiguration[];
  *   char usbDescriptorHidReport[];
@@ -349,7 +387,22 @@ section at the end of this file).
 #define USB_CFG_DESCR_PROPS_HID_REPORT              0
 #define USB_CFG_DESCR_PROPS_UNKNOWN                 0
 
+
+//#define usbMsgPtr_t unsigned short
+/* If usbMsgPtr_t is not defined, it defaults to 'uchar *'. We may define it to
+ * a scalar type here because gcc generates slightly shorter code for scalar
+ * arithmetics than for pointer arithmetics. Remove this define for backward
+ * type compatibility or define it to an 8 bit type if you use data in RAM only
+ * and all RAM is below 256 bytes (tiny memory model in IAR CC).
+ */
+
+
 /* ----------------------- Optional MCU Description ------------------------ */
+
+/*	ATmega***p/pa needs SIG_ definitions	*/
+#ifndef SIG_INTERRUPT0
+#define SIG_INTERRUPT0			_VECTOR(1)
+#endif
 
 /* The following configurations have working defaults in usbdrv.h. You
  * usually don't need to set them explicitly. Only if you want to run
@@ -364,6 +417,25 @@ section at the end of this file).
 /* #define USB_INTR_ENABLE_BIT     INT0 */
 /* #define USB_INTR_PENDING        GIFR */
 /* #define USB_INTR_PENDING_BIT    INTF0 */
-/* #define USB_INTR_VECTOR         SIG_INTERRUPT0 */
+/* #define USB_INTR_VECTOR         INT0_vect */
+
+#if defined (__AVR_ATtiny45__) || defined (__AVR_ATtiny85__) 
+#define USB_INTR_CFG            PCMSK
+#define USB_INTR_CFG_SET        (1<<USB_CFG_DPLUS_BIT)
+#define USB_INTR_ENABLE_BIT     PCIE
+#define USB_INTR_PENDING_BIT    PCIF
+#define USB_INTR_VECTOR         SIG_PIN_CHANGE
+#endif
+
+#if defined (__AVR_ATtiny87__) || defined (__AVR_ATtiny167__)
+#define USB_INTR_CFG            PCMSK1
+#define USB_INTR_CFG_SET        (1 << USB_CFG_DPLUS_BIT)
+#define USB_INTR_CFG_CLR        0
+#define USB_INTR_ENABLE         PCICR
+#define USB_INTR_ENABLE_BIT     PCIE1
+#define USB_INTR_PENDING        PCIFR
+#define USB_INTR_PENDING_BIT    PCIF1
+#define USB_INTR_VECTOR         PCINT1_vect
+#endif
 
 #endif /* __usbconfig_h_included__ */

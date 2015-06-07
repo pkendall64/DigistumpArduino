@@ -5,7 +5,6 @@
  * Tabsize: 4
  * Copyright: (c) 2008 by OBJECTIVE DEVELOPMENT Software GmbH
  * License: GNU GPL v2 (see License.txt), GNU GPL v3 or proprietary (CommercialLicense.txt)
- * This Revision: $Id: usbportability.h 740 2009-04-13 18:23:31Z cs $
  */
 
 /*
@@ -52,7 +51,7 @@ Thanks to Oleg Semyonov for his help with the IAR tools port!
 #   define PROGMEM __flash
 #endif
 
-#define USB_READ_FLASH(addr)    (*(PROGMEM char *)(addr))
+#define USB_READ_FLASH(addr)    (*(const PROGMEM char *)(addr))
 
 /* The following definitions are not needed by the driver, but may be of some
  * help if you port a gcc based project to IAR.
@@ -94,7 +93,7 @@ Thanks to Oleg Semyonov for his help with the IAR tools port!
 #define __attribute__(arg)  /* not supported on IAR */
 
 #define PROGMEM                 __flash
-#define USB_READ_FLASH(addr)    (*(PROGMEM char *)(addr))
+#define USB_READ_FLASH(addr)    (*(const PROGMEM char *)(addr))
 
 #ifndef __ASSEMBLER__
 static inline void  cli(void)
@@ -125,7 +124,11 @@ static inline void  sei(void)
 #   include <avr/pgmspace.h>
 #endif
 
-#define USB_READ_FLASH(addr)    pgm_read_byte(addr)
+#if USB_CFG_DRIVER_FLASH_PAGE
+#   define USB_READ_FLASH(addr)    pgm_read_byte_far(((long)USB_CFG_DRIVER_FLASH_PAGE << 16) | (long)(addr))
+#else
+#   define USB_READ_FLASH(addr)    pgm_read_byte(addr)
+#endif
 
 #define macro   .macro
 #define endm    .endm

@@ -5,7 +5,6 @@
  * Tabsize: 4
  * Copyright: (c) 2005 by OBJECTIVE DEVELOPMENT Software GmbH
  * License: GNU GPL v2 (see License.txt), GNU GPL v3 or proprietary (CommercialLicense.txt)
- * This Revision: $Id: usbconfig-prototype.h 785 2010-05-30 17:57:07Z cs $
  */
 
 #ifndef __usbconfig_h_included__
@@ -235,10 +234,8 @@ section at the end of this file).
  * usbFunctionWrite(). Use the global usbCurrentDataToken and a static variable
  * for each control- and out-endpoint to check for duplicate packets.
  */
-
 #define USB_CFG_HAVE_MEASURE_FRAME_LENGTH   1
 #include "osccal.h"
-
 /* define this macro to 1 if you want the function usbMeasureFrameLength()
  * compiled in. This function can be used to calibrate the AVR's RC oscillator.
  */
@@ -286,13 +283,9 @@ section at the end of this file).
  * obdev's free shared VID/PID pair. See the file USB-IDs-for-free.txt for
  * details.
  */
-
-
 #define USB_CFG_DEVICE_NAME     'D','i','g','i','s','p','a','r','k',' ','S','e','r','i','a','l'
 #define USB_CFG_DEVICE_NAME_LEN 16
- 
-
-/* Same as above for the device name. If you don't want a device name, undefine
+ /* Same as above for the device name. If you don't want a device name, undefine
  * the macros. See the file USB-IDs-for-free.txt before you assign a name if
  * you use a shared VID/PID.
  */
@@ -394,6 +387,16 @@ section at the end of this file).
 #define USB_CFG_DESCR_PROPS_HID_REPORT              0
 #define USB_CFG_DESCR_PROPS_UNKNOWN                 0
 
+
+//#define usbMsgPtr_t unsigned short
+/* If usbMsgPtr_t is not defined, it defaults to 'uchar *'. We may define it to
+ * a scalar type here because gcc generates slightly shorter code for scalar
+ * arithmetics than for pointer arithmetics. Remove this define for backward
+ * type compatibility or define it to an 8 bit type if you use data in RAM only
+ * and all RAM is below 256 bytes (tiny memory model in IAR CC).
+ */
+
+
 /* ----------------------- Optional MCU Description ------------------------ */
 
 /*	ATmega***p/pa needs SIG_ definitions	*/
@@ -416,7 +419,7 @@ section at the end of this file).
 /* #define USB_INTR_PENDING_BIT    INTF0 */
 /* #define USB_INTR_VECTOR         INT0_vect */
 
- #if defined (__AVR_ATtiny45__) || defined (__AVR_ATtiny85__) 
+#if defined (__AVR_ATtiny45__) || defined (__AVR_ATtiny85__) 
 #define USB_INTR_CFG            PCMSK
 #define USB_INTR_CFG_SET        (1<<USB_CFG_DPLUS_BIT)
 #define USB_INTR_ENABLE_BIT     PCIE
